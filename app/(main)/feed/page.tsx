@@ -2,37 +2,105 @@ import Image from "next/image";
 
 import { createClient } from "@/lib/supabase/server";
 
+
 export default async function FeedPage() {
 
   const supabase = await createClient();
 
 
-  const { data: photos, error } = await supabase
+  // 1. Lấy user hiện tại
+
+  const {
+    data:{
+      user
+    }
+  } = await supabase.auth.getUser();
+
+
+
+  if(!user){
+
+    return (
+      <section className="p-4">
+        Chưa đăng nhập
+      </section>
+    );
+
+  }
+
+
+
+  // 2. Lấy danh sách bạn bè
+
+  const {
+    data: friendships
+  } = await supabase
+    .from("friendships")
+    .select("friend_id")
+    .eq(
+      "user_id",
+      user.id
+    )
+    .eq(
+      "status",
+      "accepted"
+    );
+
+
+
+  const friendIds =
+    friendships?.map(
+      item => item.friend_id
+    ) || [];
+
+
+
+  // thêm chính mình
+
+  friendIds.push(user.id);
+
+
+
+  // 3. Lấy ảnh của mình + bạn bè
+
+  const {
+    data: photos,
+    error
+  } = await supabase
     .from("photos")
     .select(`
       id,
       image_url,
       created_at,
-      profiles (
+      profiles(
         username,
         full_name,
         avatar_url
       )
     `)
-    .order("created_at", {
-      ascending: false,
-    });
+    .in(
+      "user_id",
+      friendIds
+    )
+    .order(
+      "created_at",
+      {
+        ascending:false
+      }
+    );
 
 
-  if (error) {
+
+  if(error){
 
     return (
       <section className="p-4">
-        <p>{error.message}</p>
+        {error.message}
       </section>
     );
 
   }
+
 
 
   return (
@@ -40,41 +108,32 @@ export default async function FeedPage() {
     <section className="space-y-4 p-4">
 
 
-      {photos?.map((photo:any) => (
+      {photos?.map((photo:any)=>(
 
         <div
           key={photo.id}
           className="
-            overflow-hidden
-            rounded-3xl
-            bg-white
-            shadow-sm
+          overflow-hidden
+          rounded-3xl
+          bg-white
+          shadow-sm
           "
         >
-
 
           <div className="relative aspect-square">
 
             <Image
-
               src={photo.image_url}
-
               alt=""
-
               fill
-
               unoptimized
-
               className="object-cover"
-
             />
 
           </div>
 
 
-
           <div className="p-4">
-
 
             <p className="font-semibold">
 
@@ -107,32 +166,21 @@ export default async function FeedPage() {
 
 
 
-      {photos?.length === 0 && (
+      {
+        photos?.length===0 && (
 
-        <div className="
-          rounded-3xl
-          bg-white
-          p-6
-          shadow-sm
-        ">
-
-          <h2 className="text-lg font-semibold">
-            Welcome 👋
-          </h2>
-
-
-          <p className="
-            mt-2
-            text-sm
-            text-neutral-500
+          <div className="
+            rounded-3xl
+            bg-white
+            p-6
           ">
-            Chưa có bài viết nào.
-          </p>
 
+            Chưa có ảnh nào
 
-        </div>
+          </div>
 
-      )}
+        )
+      }
 
 
     </section>
