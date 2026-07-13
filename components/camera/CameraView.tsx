@@ -27,16 +27,6 @@ const CameraView = forwardRef<
 
       try {
 
-        if (stream) {
-
-          stream
-            .getTracks()
-            .forEach(track =>
-              track.stop()
-            );
-
-        }
-
         stream =
           await navigator.mediaDevices.getUserMedia({
 
@@ -58,8 +48,7 @@ const CameraView = forwardRef<
 
         ) {
 
-          ref.current.srcObject =
-            stream;
+          ref.current.srcObject = stream;
 
           await ref.current.play();
 
@@ -90,22 +79,23 @@ const CameraView = forwardRef<
 
   return (
 
-  <video
-  ref={ref}
-  autoPlay
-  muted
-  playsInline
-  className={`
-    h-full
-    w-full
-    object-cover
-className="
-  h-full
-  w-full
-  object-cover
-"
-    `}
-/>
+    <video
+
+      ref={ref}
+
+      autoPlay
+
+      muted
+
+      playsInline
+
+      className="
+        h-full
+        w-full
+        object-cover
+      "
+
+    />
 
   );
 
