@@ -20,60 +20,57 @@ export default function CameraPreview() {
     return null;
   }
 
-  async function handleUpload() {
-    if (!file) return;
+async function handleUpload() {
+  if (!file) return;
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // 1. Tạo tên file unique
-      const fileExt = file.name.split(".").pop() || "jpg";
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    // 1. Tạo tên file
+    const fileExt = file.name.split(".").pop() || "jpg";
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      // 2. Upload lên Storage
-      const { error: uploadError } = await supabase.storage
-        .from("photos")           // ← Đảm bảo bucket này tồn tại
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+    // 2. Upload ảnh lên Storage
+    const { error: uploadError } = await supabase.storage
+      .from("photos")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
 
-      if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-      // 3. Lấy Public URL
-      const { data: urlData } = supabase.storage
-        .from("photos")
-        .getPublicUrl(fileName);
+    // 3. Lấy Public URL
+    const { data: urlData } = supabase.storage
+      .from("photos")
+      .getPublicUrl(fileName);
 
-      const publicUrl = urlData.publicUrl;
+    const publicUrl = urlData.publicUrl;
 
-      console.log("✅ Public URL:", publicUrl);
+    // 4. Lưu vào Database (ĐÃ SỬA THEO BẢNG CỦA BẠN)
+    const { error: dbError } = await supabase
+      .from("photos")
+      .insert({
+        image_url: publicUrl,        // ← Sửa thành image_url
+        user_name: "user123",        // ← Thay bằng tên user thật hoặc lấy từ auth
+        // created_at: new Date().toISOString(),  // Supabase tự tạo nếu là timestamptz
+      });
 
-      // ==================== PHẦN QUAN TRỌNG ====================
-      // 4. Lưu thông tin vào Database
-      const { error: dbError } = await supabase
-        .from("photos")           // ← Tên bảng trong Database
-        .insert({
-          url: publicUrl,         // cột chứa link ảnh
-          // user_id: user?.id,   // nếu có auth
-          // caption: "",         // nếu có mô tả
-          // created_at: new Date().toISOString(),
-        });
+    if (dbError) throw dbError;
 
-      if (dbError) throw dbError;
+    console.log("✅ Đăng thành công:", publicUrl);
+    alert("Đăng ảnh thành công!");
 
-      alert("✅ Đăng ảnh thành công!");
-      
-      clearImage();
-      closeCamera();
+    clearImage();
+    closeCamera();
 
-    } catch (error: any) {
-      console.error("Upload error:", error);
-      alert("Đăng ảnh thất bại: " + (error.message || ""));
-    } finally {
-      setLoading(false);
-    }
+  } catch (error: any) {
+    console.error(error);
+    alert("Đăng ảnh thất bại: " + (error.message || "Lỗi không xác định"));
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <div className="absolute inset-0 z-[100] bg-black">
