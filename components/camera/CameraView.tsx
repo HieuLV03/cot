@@ -90,23 +90,22 @@ const CameraView = forwardRef<
 
   return (
 
-    <video
-
-      ref={ref}
-
-      autoPlay
-
-      muted
-
-      playsInline
-
-      className="
-        h-full
-        w-full
-        object-cover
-      "
-
-    />
+  <video
+  ref={ref}
+  autoPlay
+  muted
+  playsInline
+  className={`
+    h-full
+    w-full
+    object-cover
+className="
+  h-full
+  w-full
+  object-cover
+"
+    `}
+/>
 
   );
 

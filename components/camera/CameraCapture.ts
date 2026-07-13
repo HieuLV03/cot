@@ -40,23 +40,13 @@ export async function capturePhoto({
   ctx.save();
 
   // Camera trước
-  if (facingMode === "user") {
-
-    ctx.translate(width, 0);
-
-    ctx.scale(-1, 1);
-
-  }
-
-  ctx.drawImage(
-    video,
-    0,
-    0,
-    width,
-    height
-  );
-
-  ctx.restore();
+ ctx.drawImage(
+  video,
+  0,
+  0,
+  width,
+  height
+);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
 
