@@ -15,7 +15,13 @@ export default function CameraModal() {
   const closeCamera = useCameraStore(
     state => state.closeCamera
   );
+const facingMode = useCameraStore(
+  state => state.facingMode
+);
 
+<CameraView
+  facingMode={facingMode}
+/>
 
   if (!isOpen) return null;
 

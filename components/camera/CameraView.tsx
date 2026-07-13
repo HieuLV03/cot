@@ -1,71 +1,100 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  forwardRef,
+  useEffect,
+} from "react";
 
 type Props = {
   facingMode: "user" | "environment";
 };
 
-export default function CameraView({
-  facingMode,
-}: Props) {
-
-  const videoRef = useRef<HTMLVideoElement>(null);
-
+const CameraView = forwardRef<
+  HTMLVideoElement,
+  Props
+>(function CameraView(
+  {
+    facingMode,
+  },
+  ref
+) {
 
   useEffect(() => {
 
-    let stream: MediaStream | undefined;
-
+    let stream: MediaStream;
 
     async function startCamera() {
+
       try {
 
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: {
-              exact: facingMode,
+        stream =
+          await navigator.mediaDevices.getUserMedia({
+
+            video: {
+
+              facingMode,
+
             },
-          },
-          audio: false,
-        });
 
+            audio: false,
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          });
+
+        if (
+          ref &&
+          typeof ref !== "function"
+        ) {
+
+          ref.current!.srcObject = stream;
+
         }
 
-
       } catch (error) {
-        console.log(error);
-      }
-    }
 
+        console.log(error);
+
+      }
+
+    }
 
     startCamera();
 
-
     return () => {
+
       stream?.getTracks().forEach(
         track => track.stop()
       );
+
     };
 
-
-  }, [facingMode]);
+  }, [
+    facingMode,
+    ref,
+  ]);
 
 
   return (
+
     <video
-      ref={videoRef}
+
+      ref={ref}
+
       autoPlay
-      playsInline
+
       muted
+
+      playsInline
+
       className="
         h-full
         w-full
         object-cover
       "
+
     />
+
   );
-}   
+
+});
+
+export default CameraView;
