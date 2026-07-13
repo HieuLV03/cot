@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { useCameraStore } from "@/store/camera.store";
 import { createClient } from "@/lib/supabase/client";
-
+import { compressImage } from "@/utils/compressImage";
 export default function CameraPreview() {
   const image = useCameraStore((state) => state.image);
   const file = useCameraStore((state) => state.file);
@@ -27,16 +27,24 @@ async function handleUpload() {
     setLoading(true);
 
     // 1. Tạo tên file
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+const compressedFile =
+  await compressImage(file);
 
+
+const fileName =
+`${Date.now()}.jpg`;
     // 2. Upload ảnh lên Storage
-    const { error: uploadError } = await supabase.storage
-      .from("photos")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+ const { error: uploadError } =
+await supabase.storage
+.from("photos")
+.upload(
+  fileName,
+  compressedFile,
+  {
+    cacheControl: "3600",
+    upsert: false,
+  }
+);
 
     if (uploadError) throw uploadError;
 

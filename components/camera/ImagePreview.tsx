@@ -4,7 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 
 import { useCameraStore } from "@/store/camera.store";
+import { createClient } from "@/lib/supabase/client";
 
+import { compressImage } from "@/utils/compressImage";
 export default function CameraPreview() {
 
   const image = useCameraStore(
@@ -26,7 +28,7 @@ export default function CameraPreview() {
   const closeCamera = useCameraStore(
     state => state.closeCamera
   );
-
+const supabase = createClient();
   const [loading, setLoading] =
     useState(false);
 
@@ -34,36 +36,140 @@ export default function CameraPreview() {
     return null;
   }
 
-  async function handleUpload() {
+async function handleUpload() {
 
-    if (!file) return;
+  if (!file) return;
 
-    try {
+  try {
 
-      setLoading(true);
+    setLoading(true);
 
-      console.log(file);
 
-      // TODO:
-      // Upload lên Supabase
+    // 1. Nén ảnh trước khi upload
 
-      clearImage();
+    const compressedFile =
+      await compressImage(file);
 
-      closeCamera();
 
-    } catch (error) {
 
-      console.error(error);
+    // 2. Tạo tên file
 
-      alert("Đăng ảnh thất bại");
+    const fileName =
+      `${Date.now()}.jpg`;
 
-    } finally {
 
-      setLoading(false);
+
+    // 3. Upload Storage
+
+    const {
+      error: uploadError
+    } =
+      await supabase.storage
+      .from("photos")
+      .upload(
+        fileName,
+        compressedFile,
+        {
+          cacheControl:"3600",
+          upsert:false,
+        }
+      );
+
+
+    if(uploadError){
+      throw uploadError;
+    }
+
+
+
+    // 4. Lấy URL
+
+    const {
+      data:urlData
+    } =
+    supabase.storage
+    .from("photos")
+    .getPublicUrl(fileName);
+
+
+
+    const imageUrl =
+      urlData.publicUrl;
+
+
+
+    // 5. Lấy user hiện tại
+
+    const {
+      data:{
+        user
+      }
+    } =
+    await supabase.auth.getUser();
+
+
+
+    if(!user){
+
+      throw new Error(
+        "Chưa đăng nhập"
+      );
 
     }
 
+
+
+    // 6. Lưu DB
+
+    const {
+      error:dbError
+    } =
+    await supabase
+    .from("photos")
+    .insert({
+
+      image_url:imageUrl,
+
+      user_id:user.id,
+
+    });
+
+
+
+    if(dbError){
+      throw dbError;
+    }
+
+
+
+    console.log(
+      "Upload thành công",
+      imageUrl
+    );
+
+
+    clearImage();
+
+    closeCamera();
+
+
+  } catch(error:any){
+
+    console.error(error);
+
+    alert(
+      "Đăng ảnh thất bại: "
+      + error.message
+    );
+
+
+  } finally {
+
+    setLoading(false);
+
   }
+
+}
 
   return (
 
