@@ -2,80 +2,79 @@
 
 import { useState } from "react";
 import Image from "next/image";
-
 import { useCameraStore } from "@/store/camera.store";
-
+import { createClient } from "@/lib/supabase/client";
 export default function CameraPreview() {
+  const image = useCameraStore((state) => state.image);
+  const file = useCameraStore((state) => state.file);
+  const isPreview = useCameraStore((state) => state.isPreview);
+  const supabase = createClient();
 
-  const image = useCameraStore(
-    state => state.image
-  );
+  const clearImage = useCameraStore((state) => state.clearImage);
+  const closeCamera = useCameraStore((state) => state.closeCamera);
 
-  const file = useCameraStore(
-    state => state.file
-  );
+  const [loading, setLoading] = useState(false);
 
-  const isPreview = useCameraStore(
-    state => state.isPreview
-  );
-
-  const clearImage = useCameraStore(
-    state => state.clearImage
-  );
-
-  const closeCamera = useCameraStore(
-    state => state.closeCamera
-  );
-
-  const [loading, setLoading] =
-    useState(false);
-
-  if (!isPreview || !image) {
+  if (!isPreview || !image || !file) {
     return null;
   }
 
-  async function handleUpload() {
+async function handleUpload() {
 
-    if (!file) return;
+  if (!file) return;
 
-    try {
+  try {
 
-      setLoading(true);
+    setLoading(true);
 
-      console.log(file);
+    const fileName =
+      `${Date.now()}-${file.name}`;
 
-      // TODO:
-      // Upload Supabase
+    const { error } =
+      await supabase.storage
+        .from("photos")
+        .upload(
+          fileName,
+          file,
+          {
+            upsert: false,
+          }
+        );
 
-      clearImage();
+    if (error) {
 
-      closeCamera();
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert("Đăng ảnh thất bại");
-
-    } finally {
-
-      setLoading(false);
+      throw error;
 
     }
 
+    const {
+      data
+    } = supabase.storage
+      .from("photos")
+      .getPublicUrl(fileName);
+
+    console.log(data.publicUrl);
+
+    clearImage();
+
+    closeCamera();
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert("Đăng ảnh thất bại");
+
+  } finally {
+
+    setLoading(false);
+
   }
 
+}
+
   return (
-
-    <div
-      className="
-        absolute
-        inset-0
-        z-[100]
-        bg-black
-      "
-    >
-
+    <div className="absolute inset-0 z-[100] bg-black">
       <Image
         src={image}
         alt="Preview"
@@ -84,29 +83,11 @@ export default function CameraPreview() {
         className="object-cover"
       />
 
-      <div
-        className="
-          absolute
-          bottom-8
-          left-0
-          flex
-          w-full
-          gap-4
-          px-6
-        "
-      >
-
+      <div className="absolute bottom-8 left-0 flex w-full gap-4 px-6">
         <button
           disabled={loading}
           onClick={clearImage}
-          className="
-            flex-1
-            rounded-xl
-            bg-white
-            py-4
-            font-semibold
-            disabled:opacity-50
-          "
+          className="flex-1 rounded-xl bg-white py-4 font-semibold disabled:opacity-50"
         >
           Chụp lại
         </button>
@@ -114,27 +95,11 @@ export default function CameraPreview() {
         <button
           disabled={loading}
           onClick={handleUpload}
-          className="
-            flex-1
-            rounded-xl
-            bg-blue-500
-            py-4
-            font-semibold
-            text-white
-            disabled:opacity-50
-          "
+          className="flex-1 rounded-xl bg-blue-500 py-4 font-semibold text-white disabled:opacity-50"
         >
-          {
-            loading
-              ? "Đang đăng..."
-              : "Đăng"
-          }
+          {loading ? "Đang đăng..." : "Đăng"}
         </button>
-
       </div>
-
     </div>
-
   );
-
 }
