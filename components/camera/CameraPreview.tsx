@@ -45,7 +45,7 @@ export default function CameraPreview() {
       console.log(file);
 
       // TODO:
-      // Upload lên Supabase
+      // Upload Supabase
 
       clearImage();
 

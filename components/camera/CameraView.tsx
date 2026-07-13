@@ -21,19 +21,27 @@ const CameraView = forwardRef<
 
   useEffect(() => {
 
-    let stream: MediaStream;
+    let stream: MediaStream | null = null;
 
     async function startCamera() {
 
       try {
 
+        if (stream) {
+
+          stream
+            .getTracks()
+            .forEach(track =>
+              track.stop()
+            );
+
+        }
+
         stream =
           await navigator.mediaDevices.getUserMedia({
 
             video: {
-
               facingMode,
-
             },
 
             audio: false,
@@ -41,17 +49,25 @@ const CameraView = forwardRef<
           });
 
         if (
+
           ref &&
-          typeof ref !== "function"
+
+          typeof ref !== "function" &&
+
+          ref.current
+
         ) {
 
-          ref.current!.srcObject = stream;
+          ref.current.srcObject =
+            stream;
+
+          await ref.current.play();
 
         }
 
       } catch (error) {
 
-        console.log(error);
+        console.error(error);
 
       }
 
@@ -71,7 +87,6 @@ const CameraView = forwardRef<
     facingMode,
     ref,
   ]);
-
 
   return (
 

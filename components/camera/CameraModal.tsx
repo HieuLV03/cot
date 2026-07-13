@@ -1,10 +1,12 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useRef } from "react";
+
+import CameraView from "./CameraView";
+import CameraControls from "./CameraControls";
+import CameraPreview from "./CameraPreview";
 
 import { useCameraStore } from "@/store/camera.store";
-import CameraView from "./CameraView";
-
 
 export default function CameraModal() {
 
@@ -12,49 +14,39 @@ export default function CameraModal() {
     state => state.isOpen
   );
 
-  const closeCamera = useCameraStore(
-    state => state.closeCamera
+  const facingMode = useCameraStore(
+    state => state.facingMode
   );
-const facingMode = useCameraStore(
-  state => state.facingMode
-);
 
-<CameraView
-  facingMode={facingMode}
-/>
+  const videoRef =
+    useRef<HTMLVideoElement>(null);
 
   if (!isOpen) return null;
 
-
   return (
-    <div className="
-      fixed
-      inset-0
-      z-50
-      bg-black
-    ">
 
+    <div
+      className="
+        fixed
+        inset-0
+        z-50
+        bg-black
+      "
+    >
 
       <CameraView
-        facingMode="environment"
+        ref={videoRef}
+        facingMode={facingMode}
       />
 
+      <CameraControls
+        videoRef={videoRef}
+      />
 
-      <button
-        onClick={closeCamera}
-        className="
-          absolute
-          right-5
-          top-5
-          rounded-full
-          bg-white/20
-          p-3
-        "
-      >
-        <X color="white"/>
-      </button>
-
+      <CameraPreview />
 
     </div>
+
   );
+
 }

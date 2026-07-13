@@ -21,6 +21,10 @@ export default function CameraControls({
   videoRef,
 }: Props) {
 
+  const facingMode = useCameraStore(
+    state => state.facingMode
+  );
+
   const switchCamera = useCameraStore(
     state => state.switchCamera
   );
@@ -33,17 +37,22 @@ export default function CameraControls({
     state => state.setImage
   );
 
-
   async function handleCapture() {
 
-    if (!videoRef.current) return;
+    if (!videoRef.current) {
+      alert("Camera chưa sẵn sàng");
+      return;
+    }
 
     try {
 
-      const result =
-        await capturePhoto(
-          videoRef.current
-        );
+      const result = await capturePhoto({
+
+        video: videoRef.current,
+
+        facingMode,
+
+      });
 
       setImage(
         result.preview,
@@ -52,14 +61,13 @@ export default function CameraControls({
 
     } catch (error) {
 
-      console.log(error);
+      console.error(error);
 
       alert("Không thể chụp ảnh");
 
     }
 
   }
-
 
   function pickImage() {
 
@@ -70,7 +78,7 @@ export default function CameraControls({
 
     input.accept = "image/*";
 
-    input.onchange = async () => {
+    input.onchange = () => {
 
       const file =
         input.files?.[0];
@@ -91,7 +99,6 @@ export default function CameraControls({
 
   }
 
-
   return (
 
     <>
@@ -111,11 +118,11 @@ export default function CameraControls({
       >
 
         <Repeat2
+          size={24}
           color="white"
         />
 
       </button>
-
 
 
       {/* Đóng */}
@@ -133,11 +140,11 @@ export default function CameraControls({
       >
 
         <X
+          size={24}
           color="white"
         />
 
       </button>
-
 
 
       {/* Bottom */}
@@ -151,25 +158,25 @@ export default function CameraControls({
           w-full
           items-center
           justify-center
-          gap-12
+          gap-14
         "
       >
 
-        {/* Album */}
+        {/* Chọn ảnh */}
 
         <button
           onClick={pickImage}
         >
 
           <Image
-            color="white"
             size={30}
+            color="white"
           />
 
         </button>
 
 
-        {/* Capture */}
+        {/* Chụp */}
 
         <button
           onClick={handleCapture}
@@ -180,14 +187,17 @@ export default function CameraControls({
             items-center
             justify-center
             rounded-full
-            border-4
+            border-[5px]
             border-white
+            bg-white/10
+            active:scale-95
+            transition
           "
         >
 
           <Camera
-            color="white"
             size={34}
+            color="white"
           />
 
         </button>

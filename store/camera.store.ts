@@ -44,28 +44,44 @@ create<CameraStore>((set) => ({
 
   isPreview: false,
 
-
   openCamera: () =>
-    set({
-      isOpen: true,
-    }),
 
+    set({
+
+      isOpen: true,
+
+    }),
 
   closeCamera: () =>
-    set({
 
-      isOpen: false,
+    set((state) => {
 
-      image: null,
+      if (state.image) {
 
-      file: null,
+        URL.revokeObjectURL(
+          state.image
+        );
 
-      isPreview: false,
+      }
+
+      return {
+
+        isOpen: false,
+
+        facingMode: "environment",
+
+        image: null,
+
+        file: null,
+
+        isPreview: false,
+
+      };
 
     }),
 
-
   switchCamera: () =>
+
     set((state) => ({
 
       facingMode:
@@ -79,8 +95,6 @@ create<CameraStore>((set) => ({
 
     })),
 
-
-
   setImage: (
 
     image,
@@ -89,27 +103,49 @@ create<CameraStore>((set) => ({
 
   ) =>
 
-    set({
+    set((state) => {
 
-      image,
+      if (state.image) {
 
-      file,
+        URL.revokeObjectURL(
+          state.image
+        );
 
-      isPreview: true,
+      }
+
+      return {
+
+        image,
+
+        file,
+
+        isPreview: true,
+
+      };
 
     }),
 
-
-
   clearImage: () =>
 
-    set({
+    set((state) => {
 
-      image: null,
+      if (state.image) {
 
-      file: null,
+        URL.revokeObjectURL(
+          state.image
+        );
 
-      isPreview: false,
+      }
+
+      return {
+
+        image: null,
+
+        file: null,
+
+        isPreview: false,
+
+      };
 
     }),
 
