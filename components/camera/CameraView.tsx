@@ -27,25 +27,31 @@ const CameraView = forwardRef<
 
       try {
 
-        stream =
-          await navigator.mediaDevices.getUserMedia({
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
 
-            video: {
-              facingMode,
+        const constraints: MediaStreamConstraints = {
+          video: {
+            facingMode: {
+              ideal: facingMode,
             },
+          },
+          audio: false,
+        };
 
-            audio: false,
+        stream = await navigator.mediaDevices.getUserMedia(
+          constraints
+        );
 
-          });
+        const track = stream.getVideoTracks()[0];
+
+        console.log(track.getSettings());
 
         if (
-
           ref &&
-
           typeof ref !== "function" &&
-
           ref.current
-
         ) {
 
           ref.current.srcObject = stream;
@@ -66,8 +72,8 @@ const CameraView = forwardRef<
 
     return () => {
 
-      stream?.getTracks().forEach(
-        track => track.stop()
+      stream?.getTracks().forEach(track =>
+        track.stop()
       );
 
     };
@@ -80,21 +86,15 @@ const CameraView = forwardRef<
   return (
 
     <video
-
       ref={ref}
-
       autoPlay
-
       muted
-
       playsInline
-
       className="
         h-full
         w-full
         object-cover
       "
-
     />
 
   );
