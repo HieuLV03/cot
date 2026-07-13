@@ -48,13 +48,30 @@ async function handleUpload() {
     const publicUrl = urlData.publicUrl;
 
     // 4. Lưu vào Database (ĐÃ SỬA THEO BẢNG CỦA BẠN)
-    const { error: dbError } = await supabase
-      .from("photos")
-      .insert({
-        image_url: publicUrl,        // ← Sửa thành image_url
-        user_name: "user123",        // ← Thay bằng tên user thật hoặc lấy từ auth
-        // created_at: new Date().toISOString(),  // Supabase tự tạo nếu là timestamptz
-      });
+const {
+  data: {
+    user
+  },
+  error: authError
+} = await supabase.auth.getUser();
+
+
+if (authError || !user) {
+  throw new Error("Chưa đăng nhập");
+}
+
+
+const { error: dbError } = await supabase
+  .from("photos")
+  .insert({
+    image_url: publicUrl,
+    user_id: user.id,
+  });
+
+
+if (dbError) {
+  throw dbError;
+}
 
     if (dbError) throw dbError;
 
