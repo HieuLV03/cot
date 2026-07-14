@@ -16,31 +16,38 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://chi-cot.vercel.app"),
 
+  verification: {
+    google: "iMhkqfnYHYPZ2e7ZhvNa8URs0nteVRjtS03F9CKa0sU",
+  },
+
   title: {
-    default: "Chí Cốt - Chia sẻ khoảnh khắc",
+    default: "Chí Cốt - Chia sẻ khoảnh khắc cùng bạn bè",
     template: "%s | Chí Cốt",
   },
 
   description:
-    "Chí Cốt là ứng dụng chia sẻ ảnh với bạn bè thân thiết. Chụp, đăng và kết nối những khoảnh khắc mỗi ngày.",
+    "Chí Cốt là ứng dụng chia sẻ ảnh với bạn bè thân thiết. Chụp ảnh, lưu giữ khoảnh khắc và kết nối mỗi ngày.",
 
   keywords: [
     "Chí Cốt",
     "Chi Cot",
     "chí cốt",
     "chi cot",
+    "chia sẻ ảnh",
     "ứng dụng chia sẻ ảnh",
     "mạng xã hội",
-    "chia sẻ khoảnh khắc",
     "bạn bè",
+    "chia sẻ khoảnh khắc",
   ],
 
   openGraph: {
     title: "Chí Cốt",
     description:
       "Ứng dụng chia sẻ ảnh với bạn bè thân thiết.",
-    type: "website",
+    url: "https://chi-cot.vercel.app",
+    siteName: "Chí Cốt",
     locale: "vi_VN",
+    type: "website",
   },
 
   twitter: {
@@ -48,6 +55,10 @@ export const metadata: Metadata = {
     title: "Chí Cốt",
     description:
       "Ứng dụng chia sẻ ảnh với bạn bè thân thiết.",
+  },
+
+  alternates: {
+    canonical: "https://chi-cot.vercel.app",
   },
 };
 
