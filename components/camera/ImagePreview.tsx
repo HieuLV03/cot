@@ -125,7 +125,7 @@ async function handleUpload() {
       error:dbError
     } =
     await supabase
-    .from("photos")
+    .from("posts")
     .insert({
 
       image_url:imageUrl,
