@@ -20,6 +20,9 @@ const CameraView = forwardRef<HTMLVideoElement, Props>(
           const constraints: MediaStreamConstraints = {
             video: {
               facingMode: { ideal: facingMode },
+              width: { ideal: 1920, min: 1280 },
+              height: { ideal: 1080, min: 720 },
+              frameRate: { ideal: 30, min: 24 },
             },
             audio: false,
           };
@@ -31,7 +34,7 @@ const CameraView = forwardRef<HTMLVideoElement, Props>(
             await ref.current.play();
           }
         } catch (error) {
-          console.error(error);
+          console.error("Lỗi mở camera:", error);
         }
       }
 
