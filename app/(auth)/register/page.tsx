@@ -97,7 +97,7 @@ export default function RegisterPage() {
           text-sm
           text-neutral-500
         ">
-          Tham gia Locket Mini ngay hôm nay
+          Tham gia Chí Cốt ngay hôm nay
         </p>
 
 

@@ -166,7 +166,7 @@ async function loginGoogle(){
           text-3xl
           font-bold
         ">
-          Locket Mini
+          Chí Cốt
         </h1>
 
 

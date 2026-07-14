@@ -8,7 +8,7 @@ export default function Header() {
         <div className="w-8" />
 
         <h1 className="text-xl font-bold tracking-tight">
-          Locket
+          Chí Cốt
         </h1>
 
         <button
