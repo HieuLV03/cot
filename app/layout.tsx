@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 
   title: {
-    default: "Chí Cốt - Chia sẻ khoảnh khắc cùng bạn bè",
+    default: "Chí Cốt",
     template: "%s | Chí Cốt",
   },
 
