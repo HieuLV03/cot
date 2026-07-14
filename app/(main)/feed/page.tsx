@@ -5,21 +5,24 @@ import Image from "next/image";
 import { useInView } from "react-intersection-observer";
 import { createClient } from "@/lib/supabase/client";
 
-type Photo = {
+type Profile = {
+  username?: string | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
+};
+
+type Post = {
   id: string;
   image_url: string;
+  content?: string | null;
   created_at: string;
-  profiles: {
-    username?: string;
-    full_name?: string;
-    avatar_url?: string;
-  } | null;
+  profiles: Profile | null;
 };
 
 export default function FeedPage() {
   const supabase = createClient();
 
-  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -27,17 +30,15 @@ export default function FeedPage() {
 
   const { ref, inView } = useInView({ threshold: 0.5 });
 
-  // Load lần đầu
   useEffect(() => {
     loadInitialFeed();
   }, []);
 
-  // Load more khi scroll
   useEffect(() => {
     if (inView && hasMore && !loadingMore) {
-      loadMorePhotos();
+      loadMorePosts();
     }
-  }, [inView, photos, hasMore, loadingMore, currentUser]);
+  }, [inView]);
 
   async function loadInitialFeed() {
     setLoading(true);
@@ -60,10 +61,11 @@ export default function FeedPage() {
     friendIds.push(user.id);
 
     const { data, error } = await supabase
-      .from("photos")
+      .from("posts")
       .select(`
         id,
         image_url,
+        content,
         created_at,
         profiles!inner(username, full_name, avatar_url)
       `)
@@ -74,18 +76,18 @@ export default function FeedPage() {
     if (error) {
       console.error(error);
     } else if (data) {
-      setPhotos(data as Photo[]);
+      setPosts(data as Post[]);
     }
 
     setLoading(false);
   }
 
-  async function loadMorePhotos() {
-    if (!currentUser || loadingMore || !hasMore || photos.length === 0) return;
+  async function loadMorePosts() {
+    if (!currentUser || loadingMore || !hasMore || posts.length === 0) return;
 
     setLoadingMore(true);
 
-    const lastCreatedAt = photos[photos.length - 1]?.created_at;
+    const lastCreatedAt = posts[posts.length - 1]?.created_at;
     if (!lastCreatedAt) {
       setLoadingMore(false);
       return;
@@ -101,10 +103,11 @@ export default function FeedPage() {
     friendIds.push(currentUser.id);
 
     const { data, error } = await supabase
-      .from("photos")
+      .from("posts")
       .select(`
         id,
         image_url,
+        content,
         created_at,
         profiles!inner(username, full_name, avatar_url)
       `)
@@ -115,8 +118,8 @@ export default function FeedPage() {
 
     if (error) {
       console.error(error);
-    } else if (data && data.length > 0) {
-      setPhotos((prev) => [...prev, ...(data as Photo[])]);
+    } else if (data) {
+      setPosts((prev) => [...prev, ...(data as Post[])]);
       if (data.length < 8) setHasMore(false);
     } else {
       setHasMore(false);
@@ -135,16 +138,16 @@ export default function FeedPage() {
 
   return (
     <section className="mx-auto max-w-md space-y-6 bg-neutral-100 px-4 py-5 min-h-screen pb-24">
-      {photos.map((photo, index) => (
+      {posts.map((post, index) => (
         <article
-          key={photo.id}
+          key={post.id}
           className="overflow-hidden rounded-[28px] bg-white shadow-lg shadow-black/5"
         >
           <div className="flex items-center gap-3 p-4">
             <div className="relative h-12 w-12 overflow-hidden rounded-full bg-neutral-200">
-              {photo.profiles?.avatar_url ? (
+              {post.profiles?.avatar_url ? (
                 <Image
-                  src={photo.profiles.avatar_url}
+                  src={post.profiles.avatar_url}
                   alt=""
                   fill
                   className="object-cover"
@@ -152,24 +155,24 @@ export default function FeedPage() {
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center font-semibold text-neutral-500">
-                  {(photo.profiles?.full_name || photo.profiles?.username || "?").charAt(0).toUpperCase()}
+                  {(post.profiles?.full_name || post.profiles?.username || "?").charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
             <div>
               <h3 className="font-semibold">
-                {photo.profiles?.full_name || photo.profiles?.username}
+                {post.profiles?.full_name || post.profiles?.username}
               </h3>
               <p className="text-xs text-neutral-500">
-                {new Date(photo.created_at).toLocaleString("vi-VN")}
+                {new Date(post.created_at).toLocaleString("vi-VN")}
               </p>
             </div>
           </div>
 
           <div className="relative aspect-square">
             <Image
-              src={photo.image_url}
-              alt="Feed photo"
+              src={post.image_url}
+              alt="Post"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 500px"
@@ -177,6 +180,12 @@ export default function FeedPage() {
               priority={index < 2}
             />
           </div>
+
+          {post.content && (
+            <div className="p-4 text-[15px] leading-relaxed whitespace-pre-wrap">
+              {post.content}
+            </div>
+          )}
         </article>
       ))}
 
@@ -188,8 +197,15 @@ export default function FeedPage() {
         </div>
       )}
 
-      {!hasMore && photos.length > 0 && (
-        <p className="text-center py-10 text-neutral-500">Đã xem hết ảnh từ bạn bè</p>
+      {!hasMore && posts.length > 0 && (
+        <p className="text-center py-10 text-neutral-500">Đã xem hết bài viết</p>
+      )}
+
+      {posts.length === 0 && !loading && (
+        <div className="text-center py-20">
+          <p className="text-2xl">📸</p>
+          <p className="mt-3 text-neutral-500">Chưa có bài viết nào từ bạn bè</p>
+        </div>
       )}
     </section>
   );
